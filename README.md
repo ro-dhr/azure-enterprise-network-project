@@ -333,4 +333,4 @@ This section covers issues run into during the project and how they were resolve
 
 **Resolution:** Changed the VM size in the Terraform configuration from Standard_B1s to Standard_D2als_v6, which was available in UK West. Re-ran `terraform apply` and the deployment completed successfully.
 
-**Takeaway:** Not every VM size is available in every region, and capacity can vary even within a region depending on current demand. When a SKU fails with an availability error, checking Azure's SKU availability for that specific region (or just trying a comparable size) is usually faster than trying to force the original one through.
+
