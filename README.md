@@ -12,17 +12,15 @@ This project is still in progress. More phases will be added as they're complete
 
 | Section | Description |
 |---|---|
-| [Project Overview](#project-overview) | What this project is and why it's set up this way |
+| [Project Overview](#project-overview) | Bit more explanation about the project |
 | [Architecture](#architecture) | Side by side comparison of both sites |
-| [Phase 1: Site 1, US West (Manual Deployment)](#phase-1-site-1-us-west-manual-deployment) | Building the network foundation and VM through the Azure Portal |
-| [Phase 2: Site 2, UK West (Terraform Deployment)](#phase-2-site-2-uk-west-terraform-deployment) | Building the same network foundation with Terraform and PowerShell |
+| [Phase 1: Site 1, US West (Manual Deployment)](#phase-1-site-1-us-west-manual-deployment) | Manual Configuration |
+| [Phase 2: Site 2, UK West (Terraform Deployment)](#phase-2-site-2-uk-west-terraform-deployment) | Automated via Terraform and PowerShell |
 | [Troubleshooting](#troubleshooting) | Issues run into during the project and how they were resolved |
 
 ## Project Overview
 
-The idea behind this lab was to stand up two separate network sites in Azure, each in its own region, and connect the deployment process to real-world practices. Site 1 was deployed by hand through the Azure Portal to get a solid understanding of what each resource does and how they connect. Site 2 was deployed with Terraform to practice infrastructure as code and see how the same resources look when they're defined declaratively instead of clicked together.
-
-Both sites follow the same basic pattern: a virtual network, a subnet, a network security group, a route table, and a Linux VM. Keeping the design consistent between the two made it easier to compare the manual process against the automated one.
+The idea behind this lab was to stand up two separate network sites in Azure, each in its own region, and connect the deployment process to real-world practices. Site 1 was deployed by hand through the Azure Portal to get a solid understanding of what each resource does and how they connect. Site 2 was deployed with Terraform to practice infrastructure as code and see how the same resources look when they're defined declaratively instead of clicked together. After both sites are created, I'll go back in and intentionally break things: misconfigured NSG rules, bad routes, that kind of thing. Then work through diagnosing, fixing, verifying, and documenting each issue.
 
 ## Architecture
 
