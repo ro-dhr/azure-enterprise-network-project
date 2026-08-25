@@ -332,7 +332,7 @@ Completely timed out, and without connectivity, SSH won't work either.
 
 ![SSH fails](screenshots/scenario1-02-ssh-fails.png)
  
-Since these two sites are split across different VNets, I went to check if both were peered. Found out they were not, so it's time to create a peer. The two VNets, vnet-eu-network-lab and vnet-us-hq, had never been peered, so there was no path between them at all.
+Since these two sites are split across different VNets, I went to check if both were peered. Found out they were not, so it's time to create a peer. 
  
 ![Peering EU to US](screenshots/scenario1-03-peering-eu-to-us.png)
 
