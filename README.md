@@ -16,6 +16,7 @@ This project is still in progress. More phases will be added as they're complete
 | [Architecture](#architecture) | Side by side comparison of both sites |
 | [Phase 1: Site 1, US West (Manual Deployment)](#phase-1-site-1-us-west-manual-deployment) | Manual Configuration |
 | [Phase 2: Site 2, UK West (Terraform Deployment)](#phase-2-site-2-uk-west-terraform-deployment) | Automated via Terraform and PowerShell |
+| [Scenario #1: EU Admin Can't Reach the US Site](#scenario-1-eu-admin-cant-reach-the-us-site) | A simulated connectivity issue between the two sites |
 | [Troubleshooting](#troubleshooting) | Issues run into during the project and how they were resolved |
 
 ## Project Overview
