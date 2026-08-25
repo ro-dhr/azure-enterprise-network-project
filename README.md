@@ -365,7 +365,7 @@ Added a narrower allow rule above it, priority 190, allowing SSH from just the o
 
 ### Verify
  
-SSH from the EU VM to the US VM worked; problem fixed!
+SSH from the EU VM to the US VM worked! Problem fixed!
  
 ![SSH succeeds](screenshots/scenario1-11-ssh-succeeds.png)
 
