@@ -15,7 +15,7 @@ This project simulates a small enterprise network with two sites in different Az
 
 ## Project Overview
 
-The idea behind this lab was to stand up two separate network sites in Azure, each in its own region, and connect the deployment process to real-world practices. Site 1 was deployed by hand through the Azure Portal to get a solid understanding of what each resource does and how they connect. Site 2 was deployed with Terraform to practice infrastructure as code and see how the same resources look when they're defined declaratively instead of clicked together. After both sites are created, I'll go back in and intentionally break things: misconfigured NSG rules, bad routes, that kind of thing. Then work through diagnosing, fixing, verifying, and documenting each issue.
+The idea behind this lab was to first stand up two separate network sites in Azure, each in its own region, and connect the deployment process to real-world practices. Site 1 was deployed through the Azure Portal to understand what each resource does and how they connect. Site 2 was deployed with Terraform to practice infrastructure as code and see how the same resources look when they're automated. After both sites are created, I'll go back in and intentionally break or add stuff: misconfigured NSG rules, bad routes, a new VM, etc. Then I'll work through diagnosing, fixing/creating, verifying, and documenting each issue. I'll also document any genuine issues that come up when doing this and show what I learned and how I fixed it.
 
 ## Architecture
 
