@@ -322,37 +322,46 @@ Checked hostname, network interface, routing table, and ran a ping test, same ve
 
 ## Scenario #1: EU Admin Can't Reach the US Site
  
-This one was set up on purpose, a simulated scenario to practice diagnosing a connectivity issue across the two sites rather than a real deployment problem. An EU admin is trying to access the US branch (vm-us-hq) from the EU VM (vm-eu-network-lab) and can't get through.
+An EU admin is trying to access the US branch (vm-us-hq) via SSH from the EU VM (vm-eu-network-lab) and can't get through.
  
-A ping from the EU VM to the US VM's private IP (10.20.1.4) timed out completely, and an SSH attempt just hung with no response.
+First, i'll try a ping from the EU VM to the US VM's private IP (10.20.1.4) to see if there's any connectivity
  
 ![Ping fails](screenshots/scenario1-01-ping-fails.png)
+
+Completely timed out, and without connectivity, SSH won't work either.
+
 ![SSH fails](screenshots/scenario1-02-ssh-fails.png)
  
-The two VNets, vnet-eu-network-lab and vnet-us-hq, had never been peered, so there was no path between them at all.
+Since these two sites are split across different VNets, I went to check if both were peered. Found out they were not, so it's time to create a peer. The two VNets, vnet-eu-network-lab and vnet-us-hq, had never been peered, so there was no path between them at all.
  
 ![Peering EU to US](screenshots/scenario1-03-peering-eu-to-us.png)
+
+Since the two VNets had never been peered, there was no path between them at all.
+
 ![Peering US to EU](screenshots/scenario1-04-peering-us-to-eu.png)
+
+And the peer is created.
+
 ![Peering created](screenshots/scenario1-05-peering-created.png)
  
 With peering set up in both directions, ping started working right away.
  
 ![Ping succeeds](screenshots/scenario1-06-ping-succeeds.png)
  
-SSH, though, still wasn't going through.
+SSH, though, still wasn't going through. Since it isn't going through at all, it's most likely an NSG rule blocking it and not an SSH misconfig.
  
 ![SSH still fails](screenshots/scenario1-07-ssh-still-fails.png)
  
-Checked the inbound rules on nsg-us-hq and found a Deny-SSH-FromEU rule sitting at priority 200, explicitly blocking port 22 from the entire EU subnet (10.30.1.0/24).
+Checked the inbound rules on nsg-us-hq and found a Deny-SSH-FromEU rule sitting at priority 200, blocking port 22 from the entire EU subnet (10.30.1.0/24).
  
 ![NSG deny rule found](screenshots/scenario1-08-nsg-deny-rule-found.png)
  
-Added a narrower allow rule above it, priority 190, allowing SSH from just the one EU admin VM's IP (10.30.1.4).
+Added a narrower allow rule above it, priority 190, allowing SSH from just the one EU admin VM's IP (10.30.1.4) and not the entire branch.
  
 ![Allow rule config](screenshots/scenario1-09-allow-rule-config.png)
 ![Allow rule created](screenshots/scenario1-10-allow-rule-created.png)
  
-SSH from the EU VM to the US VM worked.
+SSH from the EU VM to the US VM worked; problem fixed!
  
 ![SSH succeeds](screenshots/scenario1-11-ssh-succeeds.png)
 
