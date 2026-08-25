@@ -319,6 +319,42 @@ Checked hostname, network interface, routing table, and ran a ping test, same ve
 
 ![SSH verification](screenshots/site2-14-ssh-more-info.png)
 
+## Scenario #1: EU Admin Can't Reach the US Site
+ 
+This one was set up on purpose, a simulated scenario to practice diagnosing a connectivity issue across the two sites rather than a real deployment problem. An EU admin is trying to access the US branch (vm-us-hq) from the EU VM (vm-eu-network-lab) and can't get through.
+ 
+A ping from the EU VM to the US VM's private IP (10.20.1.4) timed out completely, and an SSH attempt just hung with no response.
+ 
+![Ping fails](screenshots/scenario1-01-ping-fails.png)
+![SSH fails](screenshots/scenario1-02-ssh-fails.png)
+ 
+The two VNets, vnet-eu-network-lab and vnet-us-hq, had never been peered, so there was no path between them at all.
+ 
+![Peering EU to US](screenshots/scenario1-03-peering-eu-to-us.png)
+![Peering US to EU](screenshots/scenario1-04-peering-us-to-eu.png)
+![Peering created](screenshots/scenario1-05-peering-created.png)
+ 
+With peering set up in both directions, ping started working right away.
+ 
+![Ping succeeds](screenshots/scenario1-06-ping-succeeds.png)
+ 
+SSH, though, still wasn't going through.
+ 
+![SSH still fails](screenshots/scenario1-07-ssh-still-fails.png)
+ 
+Checked the inbound rules on nsg-us-hq and found a Deny-SSH-FromEU rule sitting at priority 200, explicitly blocking port 22 from the entire EU subnet (10.30.1.0/24).
+ 
+![NSG deny rule found](screenshots/scenario1-08-nsg-deny-rule-found.png)
+ 
+Added a narrower allow rule above it, priority 190, allowing SSH from just the one EU admin VM's IP (10.30.1.4).
+ 
+![Allow rule config](screenshots/scenario1-09-allow-rule-config.png)
+![Allow rule created](screenshots/scenario1-10-allow-rule-created.png)
+ 
+SSH from the EU VM to the US VM worked.
+ 
+![SSH succeeds](screenshots/scenario1-11-ssh-succeeds.png)
+
 ## Troubleshooting
 
 This section covers issues run into during the project and how they were resolved. More will be added here as they come up.
