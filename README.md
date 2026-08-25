@@ -276,9 +276,9 @@ Walking through it block by block:
 - **`azurerm_subnet.eu_subnet`:** carves out the 10.30.1.0/24 subnet inside that VNet.
 - **`azurerm_network_security_group.eu_nsg`:** creates an empty NSG, just the container for whatever rules go inside it.
 - **`azurerm_network_security_rule.allow_ssh`:** the actual rule, only letting SSH in from one admin IP.
-- **`azurerm_subnet_network_security_group_association.eu_subnet_nsg`:** the part that's easy to forget. An NSG doesn't do anything on its own, it has to be attached to the subnet, and this is what does that.
+- **`azurerm_subnet_network_security_group_association.eu_subnet_nsg`:** the part that's easy to forget. An NSG doesn't do anything on its own; it has to be attached to the subnet, and this is what does that.
 - **`azurerm_route_table.eu_route_table`:** creates the route table.
-- **`azurerm_subnet_route_table_association.eu_subnet_route_table`:** same idea as the NSG association, attaches the route table to the subnet so it's actually in play.
+- **`azurerm_subnet_route_table_association.eu_subnet_route_table`:** same idea as the NSG association; attaches the route table to the subnet.
 - **`azurerm_public_ip.eu_vm_public_ip`:** grabs a static public IP for the VM to use.
 - **`azurerm_network_interface.eu_vm_nic`:** builds the NIC and hooks that public IP up to it.
 - **`azurerm_linux_virtual_machine.eu_vm`:** the VM itself, an Ubuntu 24.04 box on a Standard_D2als_v6, using SSH key auth instead of a password, and finally connected to the NIC from the step above.
