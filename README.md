@@ -20,7 +20,7 @@ This project is still in progress. More phases will be added as they're complete
 | [Scenario #2: US VM Suddenly Can't Reach the EU VM](#scenario-2-us-vm-suddenly-cant-reach-the-eu-vm) | A route table rule silently blocking traffic between sites |
 | [Scenario #3: New EU App Subnet, Requested by the Network Manager](#scenario-3-new-eu-app-subnet-requested-by-the-network-manager) | Standing up a new isolated app subnet on request |
 | [Scenario #4: Locking Down Outbound Traffic with Azure Firewall](#scenario-4-locking-down-outbound-traffic-with-azure-firewall) | Adding Azure Firewall for traffic control and visibility |
-| [Scenario #5: External User Needs Access to the App VM](#scenario-5-external-user-needs-access-to-the-app-vm) | Scoped external access to a VM through the firewall |
+| [Scenario #5: External User Needs Access to the App VM](#scenario-5-external-user-needs-access-to-the-app-vm) | External user needs access to EU-APP site |
 | [Troubleshooting](#troubleshooting) | Issues run into during the project and how they were resolved |
 
 ## Project Overview
