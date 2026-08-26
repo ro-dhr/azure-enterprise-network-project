@@ -1,4 +1,4 @@
-# Azure Enterprise Network Lab: Multi-Region Deployment (Manual + Terraform)
+# Azure Enterprise Network Lab: Multi-Region Deployment (Manual + Terraform) (In Progress)
 
 This project simulates a small enterprise network with two sites in different Azure regions. The goal was to build the same type of network foundation two different ways and compare the experience, then work through a real deployment failure to practice troubleshooting.
 
