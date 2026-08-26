@@ -514,7 +514,7 @@ The goal here is straightforward: block outbound HTTP, allow outbound HTTPS. Fir
 
 And an allow rule for port 443 from the app subnet.
 
-![Allow HTTPS rule](screenshots/scenario4-06-allow-https-rule.png)
+![Allow HTTPS rule](screenshots/scenario4-06-allowed-https-rule.png)
 
 ### Routing Traffic Through the Firewall
 
