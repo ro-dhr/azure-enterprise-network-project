@@ -356,7 +356,7 @@ SSH from the EU VM to the US VM worked.
 
 ## Scenario #2: US VM Suddenly Can't Reach the EU VM
 
-No warning on this one, connectivity between the two sites was working fine and then it just wasn't. Starting from the US side this time: the US VM (vm-us-hq) can't reach the EU VM (vm-eu-network-lab) anymore, and I need to figure out where the traffic is actually getting dropped.
+Connectivity between the two sites was working fine, and then it just wasn't. The US VM (vm-us-hq) can't reach the EU VM (vm-eu-network-lab) anymore, and I need to figure out where the traffic is actually getting dropped.
 
 ### Confirm the Issue
 
@@ -366,11 +366,11 @@ A ping from the US VM to the EU VM's private IP (10.30.1.4) times out completely
 
 ### Diagnose and Fix
 
-First instinct is an NSG rule, so I check the outbound rules on nsg-us-hq. Everything there looks normal, default allow rules only, nothing blocking outbound traffic to the EU subnet.
+First instinct is an NSG rule, so I check the outbound rules on nsg-us-hq. Everything there looks normal: default allow rules only, nothing blocking outbound traffic to the EU subnet.
 
 ![US NSG outbound rules look fine](screenshots/scenario2-02-us-nsg-outbound.png)
 
-Just to be safe, I check the inbound rules on nsg-eu-network-lab too. Also fine, nothing there would be dropping this traffic either.
+Just to be safe, I check the inbound rules on nsg-eu-network-lab too. Also fine; nothing there would be dropping this traffic either.
 
 ![EU NSG inbound rules look fine](screenshots/scenario2-03-eu-nsg-inbound.png)
 
@@ -406,7 +406,7 @@ Ping confirms it, connectivity between the two VMs is fully restored.
 
 ## Scenario #3: New EU App Subnet, Requested by the Network Manager
 
-A request comes down from the network manager: the EU site needs a second VM to act as an internal application server, sitting in its own subnet. She gives me the parameters to use, subnet-eu-app on 10.30.2.0/24, its own NSG with SSH locked to the admin IP, and once it's up, she wants that new app subnet fully isolated from the US site as a segmentation requirement. Everything here goes in through Terraform, same as the rest of Site 2.
+The network manager requests a second VM for the EU site to act as an internal application server, in its own subnet. They give me the parameters to use: subnet-eu-app on 10.30.2.0/24, its own NSG with SSH locked to the admin IP, and once it's up, she wants that new app subnet fully isolated from the US site as a segmentation requirement. Everything here goes in through Terraform.
 
 ### Building the App Subnet and VM
 
@@ -414,7 +414,7 @@ Starting with the subnet itself, subnet-eu-app, carved out of the same vnet-eu-n
 
 ![Adding the app subnet](screenshots/scenario3-01-app-subnet.png)
 
-Adding the route table association so the new subnet inherits the same routing behavior as the rest of the site.
+Adding the route table association so the new subnet inherits the same routing behaviour as the rest of the site.
 
 ![Route table association](screenshots/scenario3-02-route-table-association.png)
 
@@ -422,11 +422,11 @@ Then a dedicated NSG for the app subnet, nsg-eu-app, with its own SSH rule scope
 
 ![New NSG, rule, and association](screenshots/scenario3-03-nsg-rule-association.png)
 
-And the networking the VM itself needs, a public IP and a NIC.
+And the VM itself needs a public IP and a NIC.
 
 ![Public IP and NIC](screenshots/scenario3-04-nic-public-ip.png)
 
-Running a plan first to see exactly what Terraform is about to create, eight new resources in total.
+Running a plan first to see exactly what Terraform is about to create. Eight new resources in total as expected.
 
 ![Terraform plan](screenshots/scenario3-05-terraform-plan.png)
 
@@ -464,7 +464,7 @@ Now for the part the network manager actually asked for: this new app subnet nee
 
 ![Deny rules for US traffic](screenshots/scenario3-13-deny-rules.png)
 
-Plan first to double check exactly what's about to change.
+Plan first to double-check exactly what's about to change.
 
 ![Terraform plan for the deny rules](screenshots/scenario3-14-terraform-plan-deny.png)
 
@@ -486,7 +486,7 @@ Segmentation is working exactly as requested, vm-eu-app is fully isolated from t
 
 ## Scenario #4: Locking Down Outbound Traffic with Azure Firewall
 
-Next request from the network manager: more visibility and control over what leaves the EU site, not just NSG allow/deny rules but actual traffic inspection. That means introducing Azure Firewall in front of both EU subnets.
+The network manager wants more visibility and control over what leaves the EU site, not just NSG allow/deny rules but actual traffic inspection.
 
 ### Building the Firewall
 
@@ -498,11 +498,11 @@ It also needs a static public IP to use as its frontend.
 
 ![Public IP for the firewall](screenshots/scenario4-02-firewall-public-ip.png)
 
-Reviewing the configuration before deploying, Standard SKU, tied to the EU VNet and the public IP above.
+Reviewing the configuration before deploying.
 
 ![Firewall review](screenshots/scenario4-03-firewall-review.png)
 
-Deployment completes.
+Deployment completed.
 
 ![Firewall created](screenshots/scenario4-04-firewall-created.png)
 
