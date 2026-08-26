@@ -548,7 +548,7 @@ Then query the logs for denied HTTP attempts, grouped by source IP. Both EU VMs 
 
 ## Scenario #5: External User Needs Access to the App VM
 
-A new request: someone outside the organization, a contractor, needs SSH access to vm-eu-app specifically. Handing out the admin credentials or opening the app subnet up broadly isn't an option, so this needs to go through the firewall with a dedicated, scoped-down account on the VM itself.
+A contractor needs SSH access to vm-eu-app specifically. Handing out the admin credentials or opening the app subnet up broadly isn't an option, so this needs to go through the firewall with a dedicated, scoped-down account on the VM itself.
 
 ### Setting Up an External Test Client
 
@@ -560,19 +560,25 @@ It's sitting in its own isolated VNet with no connection to anything in the lab.
 
 ![External VM's VNet](screenshots/scenario5-02-external-vnet.png)
 
-With a DNAT rule already set up on the firewall forwarding port 44001 to vm-eu-app's SSH port, I test from externalVM whether that port is even reachable from outside.
+Created the DNAT Rule
+
+NOTE: To be extra secure, I used the source IP of the External VM and the destination port mapped to 44001. This is better since it filters out all and any traffic that isn't from the external VM's IP address. The only downside is that SSH is only accessible from that specific IP, which is fine in this specific scenario.
+
+![DNAT rule on the firewall](screenshots/scenario5-03b-dnat-rule.png)
+
+DNAT rule already set up on the firewall forwarding port 44001 to vm-eu-app's SSH port. I test this from the external VM to see whether that port is even reachable from outside.
 
 ![Testing the port from outside](screenshots/scenario5-03-port-test.png)
 
 ### Preparing the App VM
 
-On vm-eu-app, I create a separate account, externaladmin, specifically for this kind of outside access instead of handing over anything tied to the admin account.
+On vm-eu-app, I create a separate account, externaladmin, specifically for this kind of outside access instead of handing over anything tied to the admin account. I also set up the key and other stuff.
 
 ![Creating the external account](screenshots/scenario5-04-external-account.png)
 
 ### Verify
 
-From externalVM, SSHing to the firewall's public IP on port 44001, which gets DNAT'd through to port 22 on vm-eu-app. It connects, and whoami confirms I'm logged in as externaladmin, not the admin account.
+From externalVM, I SSH to the firewall's public IP on port 44001, which gets DNAT'd through to port 22 on vm-eu-app. It connects, and whoami confirms I'm logged in as externaladmin, not the admin account.
 
 ![SSH from outside Azure succeeds](screenshots/scenario5-05-ssh-success.png)
 
@@ -588,6 +594,12 @@ This section covers issues run into during the project and how they were resolve
 
 **Resolution:** Changed the VM size in the Terraform configuration from Standard_B1s to Standard_D2als_v6, which was available in UK West. Re-ran `terraform apply` and the deployment completed successfully.
 
-**Takeaway:** Not every VM size is available in every region, and capacity can vary even within a region depending on current demand. When a SKU fails with an availability error, checking Azure's SKU availability for that specific region (or just trying a comparable size) is usually faster than trying to force the original one through.
+### Issue: Firewall Logs not showing up
+
+**What happened:** While testing HTTP traffic from the EU VM, the HTTP connection was correctly being blocked by the Azure Firewall, but the corresponding firewall events were not initially appearing in the Log Analytics queries. The VM's effective routes were checked and confirmed that 0.0.0.0/0 was being routed through the Azure Firewall at 10.30.0.4, confirming that the VM's traffic was passing through the firewall.
+
+**Resolution:** Used a broader Log Analytics search to identify where the firewall events were being stored. The denied HTTP traffic was found in the AzureDiagnostics table, showing entries such as the EU VM (10.30.2.4) attempting to reach 1.1.1.1 on TCP port 80, with the action recorded as Deny by the deny-http rule.
+
+
 
 
