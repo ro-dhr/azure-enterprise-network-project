@@ -1,12 +1,6 @@
 # Azure Enterprise Network Lab: Multi-Region Deployment (Manual + Terraform) (In Progress)
 
-This project simulates a small enterprise network with two sites in different Azure regions. The goal was to build the same type of network foundation two different ways and compare the experience, then work through a real deployment failure to practice troubleshooting.
-
-- **Site 1 (US West):** built manually through the Azure Portal
-- **Site 2 (UK West):** built with Terraform, deployed through PowerShell
-- **Troubleshooting:** a deployment failure hit while building Site 2, and how it was resolved
-
-This project is still in progress. More phases will be added as they're completed.
+This project simulates a small enterprise network with two sites in different Azure regions. The goal was to build the same type of network foundation two different ways and compare the experience, then work through a real deployment failure to practice troubleshooting. This project is still in progress. More phases will be added as they're completed.
 
 ## Table of Contents
 
@@ -25,7 +19,7 @@ This project is still in progress. More phases will be added as they're complete
 
 ## Project Overview
 
-The idea behind this lab was to stand up two separate network sites in Azure, each in its own region, and connect the deployment process to real world practices. Site 1 was deployed by hand through the Azure Portal to get a solid understanding of what each resource does and how they connect. Site 2 was deployed with Terraform to practice infrastructure as code and see how the same resources look when they're defined declaratively instead of clicked together.
+The idea behind this lab was to stand up two separate network sites in Azure, each in its own region, and connect the deployment process to real-world practices. Site 1 was deployed by hand through the Azure Portal to get a solid understanding of what each resource does and how they connect. Site 2 was deployed with Terraform to practice infrastructure as code and see how the same resources look when they're defined declaratively instead of clicked together.
 
 Both sites follow the same basic pattern: a virtual network, a subnet, a network security group, a route table, and a Linux VM. Keeping the design consistent between the two made it easier to compare the manual process against the automated one.
 
