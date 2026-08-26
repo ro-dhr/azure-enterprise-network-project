@@ -1,21 +1,35 @@
-# Azure Enterprise Network Project: Multi-Region Deployment (In Progress)
+# Azure Enterprise Network Lab: Multi-Region Deployment (Manual + Terraform)
 
-This project simulates a small enterprise network with two sites in different Azure regions. The goal was to build the same type of network foundation two different ways and compare the experience, then work through a real deployment failure to practice troubleshooting. This project is still in progress. More phases will be added as they're completed.
+This project simulates a small enterprise network with two sites in different Azure regions. The goal was to build the same type of network foundation two different ways and compare the experience, then work through a real deployment failure to practice troubleshooting.
+
+- **Site 1 (US West):** built manually through the Azure Portal
+- **Site 2 (UK West):** built with Terraform, deployed through PowerShell
+- **Troubleshooting:** a deployment failure hit while building Site 2, and how it was resolved
+
+This project is still in progress. More phases will be added as they're completed.
 
 ## Table of Contents
 
 | Section | Description |
 |---|---|
-| [Project Overview](#project-overview) | Bit more explanation about the project |
+| [Project Overview](#project-overview) | What this project is and why it's set up this way |
 | [Architecture](#architecture) | Side by side comparison of both sites |
-| [Phase 1: Site 1, US West (Manual Deployment)](#phase-1-site-1-us-west-manual-deployment) | Manual Configuration |
-| [Phase 2: Site 2, UK West (Terraform Deployment)](#phase-2-site-2-uk-west-terraform-deployment) | Automated via Terraform and PowerShell |
+| [Phase 1: Site 1, US West (Manual Deployment)](#phase-1-site-1-us-west-manual-deployment) | Building the network foundation and VM through the Azure Portal |
+| [Phase 2: Site 2, UK West (Terraform Deployment)](#phase-2-site-2-uk-west-terraform-deployment) | Building the same network foundation with Terraform and PowerShell |
 | [Scenario #1: EU Admin Can't Reach the US Site](#scenario-1-eu-admin-cant-reach-the-us-site) | A simulated connectivity issue between the two sites |
+| [Scenario #2: US VM Suddenly Can't Reach the EU VM](#scenario-2-us-vm-suddenly-cant-reach-the-eu-vm) | A route table rule silently blocking traffic between sites |
+| [Scenario #3: New EU App Subnet, Requested by the Network Manager](#scenario-3-new-eu-app-subnet-requested-by-the-network-manager) | Standing up a new isolated app subnet on request |
+| [Scenario #4: Locking Down Outbound Traffic with Azure Firewall](#scenario-4-locking-down-outbound-traffic-with-azure-firewall) | Adding Azure Firewall for traffic control and visibility |
+| [Scenario #5: External User Needs Access to the App VM](#scenario-5-external-user-needs-access-to-the-app-vm) | Scoped external access to a VM through the firewall |
 | [Troubleshooting](#troubleshooting) | Issues run into during the project and how they were resolved |
 
 ## Project Overview
 
-The idea behind this lab was to first stand up two separate network sites in Azure, each in its own region, and connect the deployment process to real-world practices. Site 1 was deployed through the Azure Portal to understand what each resource does and how they connect. Site 2 was deployed with Terraform to practice infrastructure as code and see how the same resources look when they're automated. After both sites are created, I'll go back in and intentionally break or add stuff: misconfigured NSG rules, bad routes, a new VM, etc. Then I'll work through diagnosing, fixing/creating, verifying, and documenting each issue. I'll also document any genuine issues that come up when doing this and show what I learned and how I fixed it.
+The idea behind this lab was to stand up two separate network sites in Azure, each in its own region, and connect the deployment process to real world practices. Site 1 was deployed by hand through the Azure Portal to get a solid understanding of what each resource does and how they connect. Site 2 was deployed with Terraform to practice infrastructure as code and see how the same resources look when they're defined declaratively instead of clicked together.
+
+Both sites follow the same basic pattern: a virtual network, a subnet, a network security group, a route table, and a Linux VM. Keeping the design consistent between the two made it easier to compare the manual process against the automated one.
+
+Beyond just standing both sites up, part of the plan is to go back in and intentionally break things, misconfigured NSG rules, bad routes, that kind of thing, then work through diagnosing and fixing them the way you'd have to in a real environment. The [Troubleshooting](#troubleshooting) section will grow as those scenarios get added.
 
 ## Architecture
 
@@ -42,7 +56,7 @@ Reviewed the VNet settings before creating it. Address space set to 10.20.0.0/16
 
 ![VNet review](screenshots/site1-01-vnet-review.png)
 
-Created the VNET successfully in West US under the rg-network-lab resource group.
+VNet created successfully in West US under the rg-network-lab resource group.
 
 ![VNet created](screenshots/site1-02-vnet-created.png)
 
@@ -68,7 +82,7 @@ Route table rtable-us-hq created in West US.
 
 ### Associate the NSG and Route Table with the Subnet
 
-Attached both nsg-us-hq and rtable-us-hq to subnet-us-hq so traffic in the subnet is governed by them.
+Attached both nsg-us-hq and rtable-us-hq to subnet-us-hq so traffic in the subnet would actually be governed by them.
 
 ![Associating subnet](screenshots/site1-07-associating-subnet.png)
 
@@ -157,9 +171,9 @@ Ran `terraform plan` and `terraform apply`. Terraform provisioned all 11 resourc
 ![Terraform apply](screenshots/site2-06-terraform-apply.png)
 
 ### Infrastructure as Code (main.tf)
- 
+
 Here's the full main.tf that made this happen. It's everything from the [Architecture](#architecture) table above written out as code: the resource group, VNet, subnet, NSG and its rule, route table, public IP, network interface, and the VM.
- 
+
 ```hcl
 terraform {
   required_providers {
@@ -262,18 +276,18 @@ resource "azurerm_linux_virtual_machine" "eu_vm" {
   }
 }
 ```
- 
+
 Walking through it block by block:
- 
+
 - **`terraform` / `provider "azurerm"`:** just getting Terraform ready to talk to Azure. The `terraform` block locks in AzureRM version 4.x so the config doesn't quietly break on some future provider update, and `provider "azurerm"` is what actually connects everything to the subscription.
 - **`azurerm_resource_group.eu_site`:** lays down rg-eu-network-lab first, since everything else needs somewhere to live.
 - **`azurerm_virtual_network.eu_vnet`:** creates the VNet itself with the 10.30.0.0/16 range.
 - **`azurerm_subnet.eu_subnet`:** carves out the 10.30.1.0/24 subnet inside that VNet.
 - **`azurerm_network_security_group.eu_nsg`:** creates an empty NSG, just the container for whatever rules go inside it.
 - **`azurerm_network_security_rule.allow_ssh`:** the actual rule, only letting SSH in from one admin IP.
-- **`azurerm_subnet_network_security_group_association.eu_subnet_nsg`:** the part that's easy to forget. An NSG doesn't do anything on its own; it has to be attached to the subnet, and this is what does that.
+- **`azurerm_subnet_network_security_group_association.eu_subnet_nsg`:** the part that's easy to forget. An NSG doesn't do anything on its own, it has to be attached to the subnet, and this is what does that.
 - **`azurerm_route_table.eu_route_table`:** creates the route table.
-- **`azurerm_subnet_route_table_association.eu_subnet_route_table`:** same idea as the NSG association; attaches the route table to the subnet.
+- **`azurerm_subnet_route_table_association.eu_subnet_route_table`:** same idea as the NSG association, attaches the route table to the subnet so it's actually in play.
 - **`azurerm_public_ip.eu_vm_public_ip`:** grabs a static public IP for the VM to use.
 - **`azurerm_network_interface.eu_vm_nic`:** builds the NIC and hooks that public IP up to it.
 - **`azurerm_linux_virtual_machine.eu_vm`:** the VM itself, an Ubuntu 24.04 box on a Standard_D2als_v6, using SSH key auth instead of a password, and finally connected to the NIC from the step above.
@@ -315,59 +329,262 @@ Checked hostname, network interface, routing table, and ran a ping test, same ve
 ![SSH verification](screenshots/site2-14-ssh-more-info.png)
 
 ## Scenario #1: EU Admin Can't Reach the US Site
- 
-An EU admin is trying to access the US branch (vm-us-hq) via SSH from the EU VM (vm-eu-network-lab) and can't get through.
 
-### Confirm The Issue
- 
-First, i'll try a ping from the EU VM to the US VM's private IP (10.20.1.4) to see if there's any connectivity
- 
+This one was set up on purpose, a simulated scenario to practice diagnosing a connectivity issue across the two sites rather than a real deployment problem. An EU admin is trying to access the US branch (vm-us-hq) from the EU VM (vm-eu-network-lab) and can't get through.
+
+A ping from the EU VM to the US VM's private IP (10.20.1.4) timed out completely, and an SSH attempt just hung with no response.
+
 ![Ping fails](screenshots/scenario1-01-ping-fails.png)
-
-Completely timed out, and without connectivity, SSH won't work either.
-
 ![SSH fails](screenshots/scenario1-02-ssh-fails.png)
 
-### Diagnose and Fix
- 
-Since these two sites are split across different VNets, I went to check if both were peered. Found out they were not, so it's time to create a peer. 
- 
+The two VNets, vnet-eu-network-lab and vnet-us-hq, had never been peered, so there was no path between them at all.
+
 ![Peering EU to US](screenshots/scenario1-03-peering-eu-to-us.png)
-
-Since the two VNets had never been peered, there was no path between them at all.
-
 ![Peering US to EU](screenshots/scenario1-04-peering-us-to-eu.png)
-
-And the peer is created.
-
 ![Peering created](screenshots/scenario1-05-peering-created.png)
 
-### Verify
- 
 With peering set up in both directions, ping started working right away.
- 
+
 ![Ping succeeds](screenshots/scenario1-06-ping-succeeds.png)
- 
-SSH, though, still wasn't going through. Since it isn't going through at all, it's most likely an NSG rule blocking it and not an SSH misconfig.
- 
+
+SSH, though, still wasn't going through.
+
 ![SSH still fails](screenshots/scenario1-07-ssh-still-fails.png)
 
-### Diagnose and Fix
- 
-Checked the inbound rules on nsg-us-hq and found a Deny-SSH-FromEU rule sitting at priority 200, blocking port 22 from the entire EU subnet (10.30.1.0/24).
- 
+Checked the inbound rules on nsg-us-hq and found a Deny-SSH-FromEU rule sitting at priority 200, explicitly blocking port 22 from the entire EU subnet (10.30.1.0/24).
+
 ![NSG deny rule found](screenshots/scenario1-08-nsg-deny-rule-found.png)
- 
-Added a narrower allow rule above it, priority 190, allowing SSH from just the one EU admin VM's IP (10.30.1.4) and not the entire branch.
- 
+
+Added a narrower allow rule above it, priority 190, allowing SSH from just the one EU admin VM's IP (10.30.1.4).
+
 ![Allow rule config](screenshots/scenario1-09-allow-rule-config.png)
 ![Allow rule created](screenshots/scenario1-10-allow-rule-created.png)
 
-### Verify
- 
-SSH from the EU VM to the US VM worked! Problem fixed!
- 
+SSH from the EU VM to the US VM worked.
+
 ![SSH succeeds](screenshots/scenario1-11-ssh-succeeds.png)
+
+## Scenario #2: US VM Suddenly Can't Reach the EU VM
+
+No warning on this one, connectivity between the two sites was working fine and then it just wasn't. Starting from the US side this time: the US VM (vm-us-hq) can't reach the EU VM (vm-eu-network-lab) anymore, and I need to figure out where the traffic is actually getting dropped.
+
+### Confirm the Issue
+
+A ping from the US VM to the EU VM's private IP (10.30.1.4) times out completely.
+
+![Ping fails](screenshots/scenario2-01-ping-fails.png)
+
+### Diagnose and Fix
+
+First instinct is an NSG rule, so I check the outbound rules on nsg-us-hq. Everything there looks normal, default allow rules only, nothing blocking outbound traffic to the EU subnet.
+
+![US NSG outbound rules look fine](screenshots/scenario2-02-us-nsg-outbound.png)
+
+Just to be safe, I check the inbound rules on nsg-eu-network-lab too. Also fine, nothing there would be dropping this traffic either.
+
+![EU NSG inbound rules look fine](screenshots/scenario2-03-eu-nsg-inbound.png)
+
+With both NSGs ruled out, I go into Network Watcher and use the Next Hop tool to see how traffic from the US VM is actually being routed toward the EU VM's IP.
+
+![Network Watcher next hop tool](screenshots/scenario2-04-next-hop-tool.png)
+
+The result comes back as Next Hop Type: None. That means this traffic has no route at all, it's being dropped before it can even leave the subnet.
+
+![Next hop result comes back None](screenshots/scenario2-05-next-hop-none.png)
+
+That points straight at the route table, so I check rtable-us-hq and find a route called Block-Eu-Test, targeting 10.30.1.0/24 with a next hop type of None. That's effectively a black hole route for anything headed to the EU subnet, and it has no business being there.
+
+![Route table shows the blocking rule](screenshots/scenario2-06-blocking-route.png)
+
+I delete it.
+
+![Deleting the route](screenshots/scenario2-07-deleting-route.png)
+
+And it's gone.
+
+![Route deleted](screenshots/scenario2-08-route-deleted.png)
+
+### Verify
+
+Running the Next Hop tool again, the result now comes back as VirtualNetworkPeering instead of None, meaning traffic has a real path to the EU VM through the peering connection.
+
+![Next hop now shows VirtualNetworkPeering](screenshots/scenario2-09-next-hop-peering.png)
+
+Ping confirms it, connectivity between the two VMs is fully restored.
+
+![Ping succeeds](screenshots/scenario2-10-ping-succeeds.png)
+
+## Scenario #3: New EU App Subnet, Requested by the Network Manager
+
+A request comes down from the network manager: the EU site needs a second VM to act as an internal application server, sitting in its own subnet. She gives me the parameters to use, subnet-eu-app on 10.30.2.0/24, its own NSG with SSH locked to the admin IP, and once it's up, she wants that new app subnet fully isolated from the US site as a segmentation requirement. Everything here goes in through Terraform, same as the rest of Site 2.
+
+### Building the App Subnet and VM
+
+Starting with the subnet itself, subnet-eu-app, carved out of the same vnet-eu-network-lab.
+
+![Adding the app subnet](screenshots/scenario3-01-app-subnet.png)
+
+Adding the route table association so the new subnet inherits the same routing behavior as the rest of the site.
+
+![Route table association](screenshots/scenario3-02-route-table-association.png)
+
+Then a dedicated NSG for the app subnet, nsg-eu-app, with its own SSH rule scoped to the admin IP, plus the association tying it to the subnet.
+
+![New NSG, rule, and association](screenshots/scenario3-03-nsg-rule-association.png)
+
+And the networking the VM itself needs, a public IP and a NIC.
+
+![Public IP and NIC](screenshots/scenario3-04-nic-public-ip.png)
+
+Running a plan first to see exactly what Terraform is about to create, eight new resources in total.
+
+![Terraform plan](screenshots/scenario3-05-terraform-plan.png)
+
+Applying it.
+
+![Terraform apply](screenshots/scenario3-06-terraform-apply.png)
+
+Confirming the subnet is in place with the right NSG and route table attached.
+
+![Subnet verified](screenshots/scenario3-07-subnet-verify.png)
+
+And the NSG has the rules I'd expect.
+
+![NSG rules](screenshots/scenario3-08-nsg-rules.png)
+
+The VM itself is up and running in UK West, sitting on 10.30.2.4.
+
+![VM created](screenshots/scenario3-09-vm-created.png)
+
+SSH into it to confirm it's reachable.
+
+![SSH into vm-eu-app](screenshots/scenario3-10-ssh-login.png)
+
+Hostname, network interface, and routing table all look correct.
+
+![ip addr, hostname, routing table](screenshots/scenario3-11-ip-info.png)
+
+Before touching anything else, I confirm vm-eu-app can reach both the original EU VM and the US VM, full connectivity across the whole environment as a baseline.
+
+![Connectivity to both EU and US VMs](screenshots/scenario3-12-connectivity-baseline.png)
+
+### Locking It Down
+
+Now for the part the network manager actually asked for: this new app subnet needs to be isolated from the US site entirely. I add two rules to nsg-eu-app, one denying all inbound traffic from 10.20.1.0/24, one denying all outbound traffic to it.
+
+![Deny rules for US traffic](screenshots/scenario3-13-deny-rules.png)
+
+Plan first to double check exactly what's about to change.
+
+![Terraform plan for the deny rules](screenshots/scenario3-14-terraform-plan-deny.png)
+
+Then apply it.
+
+![Rules pushed](screenshots/scenario3-15-terraform-apply-deny.png)
+
+### Verify
+
+From vm-eu-app, a ping to the US VM now fails completely.
+
+![EU app VM can't reach US VM](screenshots/scenario3-16-eu-app-to-us-fails.png)
+
+And it holds in the other direction too, the US VM can no longer reach vm-eu-app either.
+
+![US VM can't reach EU app VM](screenshots/scenario3-17-us-to-eu-app-fails.png)
+
+Segmentation is working exactly as requested, vm-eu-app is fully isolated from the US site while still able to talk to the rest of the EU network.
+
+## Scenario #4: Locking Down Outbound Traffic with Azure Firewall
+
+Next request from the network manager: more visibility and control over what leaves the EU site, not just NSG allow/deny rules but actual traffic inspection. That means introducing Azure Firewall in front of both EU subnets.
+
+### Building the Firewall
+
+First, a dedicated subnet for it. Azure Firewall needs its own subnet, named exactly AzureFirewallSubnet, carved out at 10.30.0.0/24.
+
+![Creating the firewall subnet](screenshots/scenario4-01-firewall-subnet.png)
+
+It also needs a static public IP to use as its frontend.
+
+![Public IP for the firewall](screenshots/scenario4-02-firewall-public-ip.png)
+
+Reviewing the configuration before deploying, Standard SKU, tied to the EU VNet and the public IP above.
+
+![Firewall review](screenshots/scenario4-03-firewall-review.png)
+
+Deployment completes.
+
+![Firewall created](screenshots/scenario4-04-firewall-created.png)
+
+### Writing the Rules
+
+The goal here is straightforward: block outbound HTTP, allow outbound HTTPS. First, a network rule denying port 80 from both EU subnets.
+
+![Deny HTTP rule](screenshots/scenario4-05-deny-http-rule.png)
+
+And an allow rule for port 443 from the app subnet.
+
+![Allow HTTPS rule](screenshots/scenario4-06-allow-https-rule.png)
+
+### Routing Traffic Through the Firewall
+
+Rules alone don't do anything unless traffic actually passes through the firewall, so I update rt-eu-network-lab with a default route (0.0.0.0/0) pointing at the firewall's private IP.
+
+![Route pointing to the firewall](screenshots/scenario4-07-route-to-firewall.png)
+
+### Verify
+
+From the original EU VM, testing both ports against a public IP. HTTPS connects successfully, HTTP times out exactly as expected.
+
+![EU VM firewall test](screenshots/scenario4-08-eu-vm-firewall-test.png)
+
+Same test from vm-eu-app, same result.
+
+![EU app VM firewall test](screenshots/scenario4-09-eu-app-firewall-test.png)
+
+### Adding Visibility
+
+Since the whole point of this was better visibility, I turn on diagnostic logging for the firewall, sending network and application rule logs to a Log Analytics workspace so denied and allowed traffic is actually queryable.
+
+![Setting up monitoring](screenshots/scenario4-10-diagnostic-settings.png)
+
+To generate some traffic to look at, I send a few HTTP requests from the EU VM that I know will get blocked.
+
+![Sending HTTP requests](screenshots/scenario4-11-curl-requests.png)
+
+Then query the logs for denied HTTP attempts, grouped by source IP. Both EU VMs show up, exactly the ones that just tried.
+
+![Denied HTTP attempts in the logs](screenshots/scenario4-12-log-query-results.png)
+
+## Scenario #5: External User Needs Access to the App VM
+
+A new request: someone outside the organization, a contractor, needs SSH access to vm-eu-app specifically. Handing out the admin credentials or opening the app subnet up broadly isn't an option, so this needs to go through the firewall with a dedicated, scoped-down account on the VM itself.
+
+### Setting Up an External Test Client
+
+To simulate this properly, I spin up a separate VM, externalVM, in its own resource group and region (Spain Central), completely outside the lab's environment, just to act as an outside user hitting the firewall from the internet.
+
+![External test VM](screenshots/scenario5-01-external-vm.png)
+
+It's sitting in its own isolated VNet with no connection to anything in the lab.
+
+![External VM's VNet](screenshots/scenario5-02-external-vnet.png)
+
+With a DNAT rule already set up on the firewall forwarding port 44001 to vm-eu-app's SSH port, I test from externalVM whether that port is even reachable from outside.
+
+![Testing the port from outside](screenshots/scenario5-03-port-test.png)
+
+### Preparing the App VM
+
+On vm-eu-app, I create a separate account, externaladmin, specifically for this kind of outside access instead of handing over anything tied to the admin account.
+
+![Creating the external account](screenshots/scenario5-04-external-account.png)
+
+### Verify
+
+From externalVM, SSHing to the firewall's public IP on port 44001, which gets DNAT'd through to port 22 on vm-eu-app. It connects, and whoami confirms I'm logged in as externaladmin, not the admin account.
+
+![SSH from outside Azure succeeds](screenshots/scenario5-05-ssh-success.png)
 
 ## Troubleshooting
 
@@ -380,5 +597,7 @@ This section covers issues run into during the project and how they were resolve
 ![SKU error](screenshots/troubleshooting-01-vm-sku-error.png)
 
 **Resolution:** Changed the VM size in the Terraform configuration from Standard_B1s to Standard_D2als_v6, which was available in UK West. Re-ran `terraform apply` and the deployment completed successfully.
+
+**Takeaway:** Not every VM size is available in every region, and capacity can vary even within a region depending on current demand. When a SKU fails with an availability error, checking Azure's SKU availability for that specific region (or just trying a comparable size) is usually faster than trying to force the original one through.
 
 
