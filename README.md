@@ -36,6 +36,10 @@ The idea behind this lab was to first stand up two separate network sites in Azu
 
 Both sites use a private subnet with no default outbound internet access, and both restrict inbound SSH (port 22) to a single admin IP through the NSG.
 
+## Topology (Up to Phase 2)
+
+| [Architecture Diagram](#architecture-diagram) | Visual overview of both sites and their connectivity |
+
 ## Phase 1: Site 1, US West (Manual Deployment)
 
 This phase covers building the network foundation and VM for the US site entirely through the Azure Portal.
