@@ -320,7 +320,7 @@ Checked hostname, network interface, routing table, and ran a ping test, same ve
 
 ## Scenario #1: EU Admin Can't Reach the US Site
 
-This one was set up on purpose, a simulated scenario to practice diagnosing a connectivity issue across the two sites rather than a real deployment problem. An EU admin is trying to access the US branch (vm-us-hq) from the EU VM (vm-eu-network-lab) and can't get through.
+An EU admin is trying to access the US branch (vm-us-hq) from the EU VM (vm-eu-network-lab) and can't get through.
 
 A ping from the EU VM to the US VM's private IP (10.20.1.4) timed out completely, and an SSH attempt just hung with no response.
 
