@@ -552,7 +552,7 @@ Then query the logs for denied HTTP attempts, grouped by source IP. Both EU VMs 
 
 ## Scenario #5: External User Needs Access to the App VM
 
-A contractor needs SSH access to vm-eu-app specifically. Handing out the admin credentials or opening the app subnet up broadly isn't an option, so this needs to go through the firewall with a dedicated, scoped-down account on the VM itself.
+A contractor needs temporary SSH access to vm-eu-app specifically. Handing out the admin credentials or opening the app subnet up broadly isn't an option, so this needs to go through the firewall with a dedicated, scoped-down account on the VM itself.
 
 ### Setting Up an External Test Client
 
