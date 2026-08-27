@@ -596,9 +596,9 @@ This section covers issues run into during the project and how they were resolve
 
 ### Issue: Firewall Logs not showing up
 
-**What happened:** While testing HTTP traffic from the EU VM, the HTTP connection was correctly being blocked by the Azure Firewall, but the corresponding firewall events were not initially appearing in the Log Analytics queries. The VM's effective routes were checked and confirmed that 0.0.0.0/0 was being routed through the Azure Firewall at 10.30.0.4, confirming that the VM's traffic was passing through the firewall.
+**What happened:** While testing HTTP traffic from the EU VM, the HTTP connection was correctly being blocked by the Azure Firewall, but the corresponding firewall events weren't appearing in the Log Analytics queries. The VM's effective routes were checked and confirmed that 0.0.0.0/0 was being routed through the Azure Firewall at 10.30.0.4, confirming that the VM's traffic was passing through the firewall.
 
-**Resolution:** Used a broader Log Analytics search to identify where the firewall events were being stored. The denied HTTP traffic was found in the AzureDiagnostics table, showing entries such as the EU VM (10.30.2.4) attempting to reach 1.1.1.1 on TCP port 80, with the action recorded as Deny by the deny-http rule.
+**Resolution:** Used a broader Log Analytics search to find where the firewall events were being stored. The denied HTTP traffic was found in the AzureDiagnostics table, showing entries such as the EU VM (10.30.2.4) attempting to reach 1.1.1.1 on TCP port 80, with the action recorded as Deny by the deny-http rule.
 
 
 
