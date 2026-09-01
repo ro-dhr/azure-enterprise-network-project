@@ -556,7 +556,7 @@ A contractor needs temporary SSH access to vm-eu-app specifically. Handing out t
 
 ### Setting Up an External Test Client
 
-To simulate this properly, I spin up a separate VM, externalVM, in its own resource group and region (Spain Central), completely outside the lab's environment, just to act as an outside user hitting the firewall from the internet.
+To simulate this properly, I spin up a separate VM, externalVM, in its own resource group and region (Spain Central), completely outside the lab's environment, just to act as the contractor.
 
 ![External test VM](screenshots/scenario5-01-external-vm.png)
 
