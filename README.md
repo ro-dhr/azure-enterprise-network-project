@@ -38,7 +38,7 @@ Both sites use a private subnet with no default outbound internet access, and bo
 
 ## Topology (Up to Phase 2)
 
-![Architecture overview](screenshots/architecture-overview.png)
+![Architecture overview](screenshots/architecture.png)
 
 ## Phase 1: Site 1, US West (Manual Deployment)
 
