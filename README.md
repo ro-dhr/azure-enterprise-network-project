@@ -464,7 +464,7 @@ Before touching anything else, I confirm vm-eu-app can reach both the original E
 
 ### Locking It Down
 
-Now for the part the network manager actually asked for: this new app subnet needs to be isolated from the US site entirely. I add two rules to nsg-eu-app, one denying all inbound traffic from 10.20.1.0/24, one denying all outbound traffic to it.
+Now for the part the network manager actually asked for: this new app subnet needs to be isolated from the US site entirely. I added two rules to nsg-eu-app: one denying all inbound traffic from 10.20.1.0/24, and one denying all outbound traffic to it.
 
 ![Deny rules for US traffic](screenshots/scenario3-13-deny-rules.png)
 
@@ -566,11 +566,11 @@ It's sitting in its own isolated VNet with no connection to anything in the lab.
 
 Created the DNAT Rule
 
-NOTE: To be extra secure, I used the source IP of the External VM and the destination port mapped to 44001. This is better since it filters out all and any traffic that isn't from the external VM's IP address. The only downside is that SSH is only accessible from that specific IP, which is fine in this specific scenario.
+NOTE: I used the source IP of the External VM and the destination port mapped to 44001. This is better since it filters out all and any traffic that isn't from the external VM's IP address, and I'm not opening up the port to the entire internet. The only downside is that SSH is only accessible from that specific IP, which is fine in this specific scenario.
 
 ![DNAT rule on the firewall](screenshots/scenario5-03b-dnat-rule.png)
 
-DNAT rule already set up on the firewall forwarding port 44001 to vm-eu-app's SSH port. I test this from the external VM to see whether that port is even reachable from outside.
+DNAT rule is already set up on the firewall, forwarding port 44001 to vm-eu-app's SSH port. I tested this from the external VM to see whether that port is even reachable from outside.
 
 ![Testing the port from outside](screenshots/scenario5-03-port-test.png)
 
